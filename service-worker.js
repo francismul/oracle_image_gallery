@@ -1,31 +1,28 @@
-const CACHE_VERSION = "v3";
+const CACHE_VERSION = "v7";
 const CACHE_NAME = `oracle-image-gallery-${CACHE_VERSION}`;
 const BASE = "/oracle_image_gallery";
 
-// List of resources to cache
-
+// List of resources to precache (app shell)
 const urlsToCache = [
   `${BASE}/index.html`,
   `${BASE}/manifest.json`,
-  `${BASE}/assets/css/oracle-image-processing.css`,
-  `${BASE}/assets/js/oracle-image-processing.js`,
+  // Core CSS & JS
+  `${BASE}/assets/css/styles.css`,
+  `${BASE}/assets/js/scripts.js`,
+  `${BASE}/assets/js/vue.js`,
+  `${BASE}/assets/js/vue-router.js`,
+  // Icons used by the PWA
   `${BASE}/assets/images/icon-16.png`,
   `${BASE}/assets/images/icon-32.png`,
   `${BASE}/assets/images/icon-192.jpg`,
   `${BASE}/assets/images/icon-512.png`,
   `${BASE}/assets/images/icon-maskable-192.png`,
   `${BASE}/assets/images/icon-maskable-512.png`,
-  `${BASE}/assets/js/vue.js`,
-  `${BASE}/assets/js/vue-router.js`,
+  // Font Awesome basics (CSS + a couple of fonts)
   `${BASE}/assets/fontawesome-free-6.7.2-web/css/all.min.css`,
   `${BASE}/assets/fontawesome-free-6.7.2-web/webfonts/fa-solid-900.woff2`,
-  `${BASE}/assets/fontawesome-free-6.7.2-web/webfonts/fa-solid-900.ttf`,
-  `${BASE}/assets/fontawesome-free-6.7.2-web/webfonts/fa-brands-400.ttf`,
-  `${BASE}/assets/fontawesome-free-6.7.2-web/webfonts/fa-brands-400.woff2`,
-  `${BASE}/assets/fontawesome-free-6.7.2-web/webfonts/fa-regular-400.ttf`,
   `${BASE}/assets/fontawesome-free-6.7.2-web/webfonts/fa-regular-400.woff2`,
-  `${BASE}/assets/fontawesome-free-6.7.2-web/webfonts/fa-v4compatibility.woff2`,
-  `${BASE}/assets/fontawesome-free-6.7.2-web/webfonts/fa-v4compatibility.ttf`,
+  `${BASE}/assets/fontawesome-free-6.7.2-web/webfonts/fa-brands-400.woff2`,
 ];
 
 // Install event - cache resources
@@ -50,6 +47,8 @@ self.addEventListener("install", (event) => {
         });
       })
   );
+  // Activate new SW immediately
+  self.skipWaiting();
 });
 
 // Activate event - clean up old caches
@@ -66,6 +65,8 @@ self.addEventListener("activate", (event) => {
       );
     })
   );
+  // Take control of uncontrolled clients immediately
+  self.clients.claim();
 });
 
 // Fetch event - serve from cache, fallback to network
@@ -102,7 +103,7 @@ self.addEventListener("fetch", (event) => {
       .catch(() => {
         // Return a fallback page for navigation requests when offline
         if (event.request.destination === "document") {
-          return caches.match("index.html");
+          return caches.match(`${BASE}/index.html`);
         }
       })
   );
