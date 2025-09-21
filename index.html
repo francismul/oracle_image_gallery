@@ -1,199 +1,253 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#6a5acd" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta
+      name="description"
+      content="Oracle Gallery App - Manage your images offline"
+    />
+    <meta name="author" content="Francis Mule" />
+    <title>Oracle Gallery App</title>
+    <link
+      rel="apple-touch-icon"
+      sizes="512x512"
+      href="assets/images/icon-512.jpg"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="192x192"
+      href="assets/images/icon-192.jpg"
+    />
+    <link
+      rel="shortcut icon"
+      href="assets/images/favicon.ico"
+      type="image/x-icon"
+    />
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- PWA Meta Tags -->
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#6a5acd" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Oracle Gallery App</title>
-  <link rel="apple-touch-icon" sizes="512x512" href="assets/images/icon-512.jpg" />
-  <link rel="apple-touch-icon" sizes="192x192" href="assets/images/icon-192.jpg" />
-  <link rel="shortcut icon" href="assets/images/favicon.ico" type="image/x-icon" />
+    <script src="assets/js/vue.js"></script>
+    <script src="assets/js/vue-router.js"></script>
+    <link
+      rel="stylesheet"
+      href="assets/fontawesome-free-6.7.2-web/css/all.min.css"
+    />
+    <link href="assets/css/styles.css" rel="stylesheet" />
+  </head>
 
-  <script src="assets/js/vue.js"></script>
-  <script src="assets/js/vue-router.js"></script>
-  <link rel="stylesheet" href="assets/fontawesome-free-6.7.2-web/css/all.min.css" />
-  <link href="assets/css/styles.css" rel="stylesheet" />
-</head>
-
-<body>
-  <div id="app">
-    <div class="app">
-      <div class="header">
-        <div class="header-content">
-          <div class="header-text">
-            <h1><i class="fas fa-images"></i> Oracle Gallery App</h1>
-            <p>Download, store, and manage your image collection</p>
+  <body>
+    <div id="app">
+      <div class="app">
+        <div class="header">
+          <div class="header-content">
+            <div class="header-text">
+              <h1><i class="fas fa-images"></i> Oracle Gallery App</h1>
+              <p>Download, store, and manage your image collection</p>
+            </div>
+            <button
+              class="theme-toggle-btn"
+              @click="toggleDarkMode"
+              :title="isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+            >
+              <i :class="isDarkMode ? 'fas fa-sun' : 'fas fa-moon'"></i>
+            </button>
           </div>
-          <button class="theme-toggle-btn" @click="toggleDarkMode"
-            :title="isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
-            <i :class="isDarkMode ? 'fas fa-sun' : 'fas fa-moon'"></i>
-          </button>
         </div>
-      </div>
 
-      <div class="nav-tabs">
-        <router-link to="/add" class="nav-tab" active-class="active">
-          <i class="fas fa-plus"></i> Add Images
-        </router-link>
-        <router-link to="/gallery" class="nav-tab" active-class="active">
-          <i class="fas fa-th"></i> Gallery ({{ images.length }})
-        </router-link>
-      </div>
+        <div class="nav-tabs">
+          <router-link to="/add" class="nav-tab" active-class="active">
+            <i class="fas fa-plus"></i> Add Images
+          </router-link>
+          <router-link to="/gallery" class="nav-tab" active-class="active">
+            <i class="fas fa-th"></i> Gallery ({{ images.length }})
+          </router-link>
+        </div>
 
-      <!-- Router View - This will display the current route component -->
-      <router-view></router-view>
+        <!-- Router View - This will display the current route component -->
+        <router-view></router-view>
+
+        <!-- Storage Info Footer -->
+        <footer class="storage-footer" v-if="totalStorage > 0">
+          <div class="storage-info">
+            <div class="storage-content">
+              <div class="storage-label">
+                <i class="fas fa-hdd"></i>
+                <span>Storage Used</span>
+              </div>
+              <div class="storage-details">
+                <div class="storage-bar">
+                  <div
+                    class="storage-fill"
+                    :style="{ width: getStoragePercentage() + '%' }"
+                  ></div>
+                </div>
+                <div class="storage-text">
+                  <span class="storage-used"
+                    >{{ formatFileSize(usedStorage) }}</span
+                  >
+                  /
+                  <span class="storage-total"
+                    >{{ formatFileSize(totalStorage) }}</span
+                  >
+                  <span class="storage-percentage"
+                    >({{ getStoragePercentage() }}%)</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </div>
     </div>
-  </div>
- <!-- PWA Service Worker Registration -->
-  <script>
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker
-          .register("service-worker.js")
-          .then((registration) => {
-            console.log("SW registered: ", registration);
-
-            // Check for updates
-            registration.addEventListener("updatefound", () => {
-              const newWorker = registration.installing;
-              newWorker.addEventListener("statechange", () => {
-                if (
-                  newWorker.state === "installed" &&
-                  navigator.serviceWorker.controller
-                ) {
-                  // 🔔 Show toast instead of confirm
-                  showUpdateToast();
-                }
+    <!-- PWA Service Worker Registration -->
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("service-worker.js")
+            .then((registration) => {
+              // Check for updates
+              registration.addEventListener("updatefound", () => {
+                const newWorker = registration.installing;
+                newWorker.addEventListener("statechange", () => {
+                  if (
+                    newWorker.state === "installed" &&
+                    navigator.serviceWorker.controller
+                  ) {
+                    // 🔔 Show toast instead of confirm
+                    showUpdateToast();
+                  }
+                });
               });
+            })
+            .catch((registrationError) => {
+              console.log("SW registration failed: ", registrationError);
             });
-          })
-          .catch((registrationError) => {
-            console.log("SW registration failed: ", registrationError);
-          });
+        });
+      }
+
+      // Toast notification for new version
+      function showUpdateToast() {
+        const toast = document.createElement("div");
+        toast.innerHTML = `
+        🚀 A new version is available!
+          <button id="refreshBtn" style="
+            margin-left:10px;
+            background:#fff;
+            color:#333;
+            border:none;
+            padding:6px 12px;
+            border-radius:4px;
+            cursor:pointer;
+          ">Refresh</button>
+        `;
+        toast.style.cssText = `
+          position: fixed;
+          bottom: 20px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: #333;
+          color: #fff;
+          padding: 12px 18px;
+          border-radius: 6px;
+          font-family: sans-serif;
+          font-size: 14px;
+          z-index: 9999;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+          animation: fadeIn 0.3s ease;
+        `;
+
+        document.body.appendChild(toast);
+
+        // Button action
+        document.getElementById("refreshBtn").onclick = () => {
+          toast.remove();
+          window.location.reload();
+        };
+
+        // Auto-hide after 15s
+        setTimeout(() => {
+          toast.style.opacity = "0";
+          toast.style.transition = "opacity 0.5s";
+          setTimeout(() => toast.remove(), 500);
+        }, 15000);
+      }
+
+      // PWA Install prompt
+      let deferredPrompt;
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        showInstallPromotion();
       });
-    }
 
-    // Toast notification for new version
-    function showUpdateToast() {
-      const toast = document.createElement("div");
-      toast.innerHTML = `
-    🚀 A new version is available!
-    <button id="refreshBtn" style="
-      margin-left:10px;
-      background:#fff;
-      color:#333;
-      border:none;
-      padding:6px 12px;
-      border-radius:4px;
-      cursor:pointer;
-    ">Refresh</button>
-  `;
-      toast.style.cssText = `
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #333;
-    color: #fff;
-    padding: 12px 18px;
-    border-radius: 6px;
-    font-family: sans-serif;
-    font-size: 14px;
-    z-index: 9999;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    animation: fadeIn 0.3s ease;
-  `;
+      function showInstallPromotion() {
+        if (!document.getElementById("installBtn")) {
+          const installBtn = document.createElement("button");
+          installBtn.id = "installBtn";
+          installBtn.textContent = "📱 Install App";
+          installBtn.className = "btn install-btn";
+          installBtn.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            color: var(--text-light);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(106, 90, 205, 0.3);
+            transition: all 0.3s ease;
+          `;
 
-      document.body.appendChild(toast);
+          installBtn.addEventListener("click", () => {
+            if (deferredPrompt) {
+              deferredPrompt.prompt();
+              deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === "accepted") {
+                  console.log("User accepted the install prompt");
+                  installBtn.remove();
+                } else {
+                  console.log("User dismissed the install prompt");
+                }
+                deferredPrompt = null;
+              });
+            }
+          });
 
-      // Button action
-      document.getElementById("refreshBtn").onclick = () => {
-        toast.remove();
-        window.location.reload();
-      };
+          installBtn.addEventListener("mouseenter", () => {
+            installBtn.style.transform = "translateY(-2px)";
+            installBtn.style.boxShadow = "0 6px 20px rgba(106, 90, 205, 0.4)";
+          });
 
-      // Auto-hide after 15s
-      setTimeout(() => {
-        toast.style.opacity = "0";
-        toast.style.transition = "opacity 0.5s";
-        setTimeout(() => toast.remove(), 500);
-      }, 15000);
-    }
+          installBtn.addEventListener("mouseleave", () => {
+            installBtn.style.transform = "translateY(0)";
+            installBtn.style.boxShadow = "0 4px 15px rgba(106, 90, 205, 0.3)";
+          });
 
-    // PWA Install prompt
-    let deferredPrompt;
-    window.addEventListener("beforeinstallprompt", (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      showInstallPromotion();
-    });
-
-    function showInstallPromotion() {
-      if (!document.getElementById("installBtn")) {
-        const installBtn = document.createElement("button");
-        installBtn.id = "installBtn";
-        installBtn.textContent = "📱 Install App";
-        installBtn.className = "btn install-btn";
-        installBtn.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 1000;
-      background: linear-gradient(135deg, #6a5acd, #483d8b);
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 25px;
-      font-size: 14px;
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: 0 4px 15px rgba(106, 90, 205, 0.3);
-      transition: all 0.3s ease;
-    `;
-
-        installBtn.addEventListener("click", () => {
-          if (deferredPrompt) {
-            deferredPrompt.prompt();
-            deferredPrompt.userChoice.then((choiceResult) => {
-              if (choiceResult.outcome === "accepted") {
-                console.log("User accepted the install prompt");
-                installBtn.remove();
-              } else {
-                console.log("User dismissed the install prompt");
-              }
-              deferredPrompt = null;
-            });
-          }
-        });
-
-        installBtn.addEventListener("mouseenter", () => {
-          installBtn.style.transform = "translateY(-2px)";
-          installBtn.style.boxShadow = "0 6px 20px rgba(106, 90, 205, 0.4)";
-        });
-
-        installBtn.addEventListener("mouseleave", () => {
-          installBtn.style.transform = "translateY(0)";
-          installBtn.style.boxShadow = "0 4px 15px rgba(106, 90, 205, 0.3)";
-        });
-
-        document.body.appendChild(installBtn);
+          document.body.appendChild(installBtn);
+        }
       }
-    }
 
-    window.addEventListener("appinstalled", (evt) => {
-      console.log("App was installed");
-      const installBtn = document.getElementById("installBtn");
-      if (installBtn) {
-        installBtn.remove();
-      }
-    });
-  </script>
-<script src="assets/js/scripts.js"></script>
-</body>
-
+      window.addEventListener("appinstalled", (evt) => {
+        console.log("App was installed");
+        const installBtn = document.getElementById("installBtn");
+        if (installBtn) {
+          installBtn.remove();
+        }
+      });
+    </script>
+    <script src="assets/js/scripts.js"></script>
+  </body>
 </html>
