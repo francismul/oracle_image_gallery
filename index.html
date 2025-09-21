@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#6a5acd" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Oracle Gallery App</title>
+  <link rel="apple-touch-icon" sizes="512x512" href="assets/images/icon-512.jpg" />
+  <link rel="apple-touch-icon" sizes="192x192" href="assets/images/icon-192.jpg" />
+  <link rel="shortcut icon" href="assets/images/favicon.ico" type="image/x-icon" />
+
+  <script src="assets/js/vue.js"></script>
+  <script src="assets/js/vue-router.js"></script>
+  <link rel="stylesheet" href="assets/fontawesome-free-6.7.2-web/css/all.min.css" />
+  <link href="assets/css/styles.css" rel="stylesheet" />
+</head>
+
+<body>
+  <div id="app">
+    <div class="app">
+      <div class="header">
+        <div class="header-content">
+          <div class="header-text">
+            <h1><i class="fas fa-images"></i> Oracle Gallery App</h1>
+            <p>Download, store, and manage your image collection</p>
+          </div>
+          <button class="theme-toggle-btn" @click="toggleDarkMode"
+            :title="isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
+            <i :class="isDarkMode ? 'fas fa-sun' : 'fas fa-moon'"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="nav-tabs">
+        <router-link to="/add" class="nav-tab" active-class="active">
+          <i class="fas fa-plus"></i> Add Images
+        </router-link>
+        <router-link to="/gallery" class="nav-tab" active-class="active">
+          <i class="fas fa-th"></i> Gallery ({{ images.length }})
+        </router-link>
+      </div>
+
+      <!-- Router View - This will display the current route component -->
+      <router-view></router-view>
+    </div>
+  </div>
+
+  <script src="assets/js/scripts.js"></script>
+</body>
+
+</html>
