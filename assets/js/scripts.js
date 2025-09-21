@@ -4,9 +4,9 @@ const { createRouter, createWebHashHistory } = VueRouter;
 
 // Simple routes
 const routes = [
-  { path: '/', redirect: '/add' },
-  { 
-    path: '/add', 
+  { path: "/", redirect: "/add" },
+  {
+    path: "/add",
     component: {
       template: `
         <div class="page">
@@ -97,11 +97,11 @@ const routes = [
             </ul>
           </div>
         </div>
-      `
-    }
+      `,
+    },
   },
-  { 
-    path: '/gallery', 
+  {
+    path: "/gallery",
     component: {
       template: `
         <div class="page">
@@ -187,11 +187,11 @@ const routes = [
             </div>
           </div>
         </div>
-      `
-    }
+      `,
+    },
   },
-  { 
-    path: '/gallery/:img_id', 
+  {
+    path: "/gallery/:img_id",
     component: {
       template: `
         <div class="page" v-if="$root.selectedImage">
@@ -284,13 +284,13 @@ const routes = [
       },
       beforeRouteLeave(to, from, next) {
         // Stop slideshow when navigating away from single image view
-        if (this.$root && typeof this.$root.stopSlideshow === 'function') {
+        if (this.$root && typeof this.$root.stopSlideshow === "function") {
           this.$root.stopSlideshow();
         }
         next();
-      }
-    }
-  }
+      },
+    },
+  },
 ];
 
 const router = createRouter({ history: createWebHashHistory(), routes });
@@ -319,10 +319,10 @@ const app = createApp({
       swipeStartX: 0,
       swipeStartY: 0,
       swipeStartTime: 0,
-  // Slideshow state
-  slideshowPlaying: false,
-  slideshowIntervalMs: 3000,
-  slideshowTimer: null,
+      // Slideshow state
+      slideshowPlaying: false,
+      slideshowIntervalMs: 3000,
+      slideshowTimer: null,
       // File upload properties
       uploadMode: "url", // 'url' or 'file'
       selectedFiles: [],
@@ -341,14 +341,14 @@ const app = createApp({
   watch: {
     // Watch for changes to the images array and update storage info
     images: {
-      handler: async function(newImages, oldImages) {
+      handler: async function (newImages, oldImages) {
         // Only update if the array length changed (images added/removed)
         if (!oldImages || newImages.length !== oldImages.length) {
           await this.updateStorageInfo();
         }
       },
-      deep: false // We only care about array length changes, not deep object changes
-    }
+      deep: false, // We only care about array length changes, not deep object changes
+    },
   },
   async mounted() {
     this.initDarkMode();
@@ -357,8 +357,8 @@ const app = createApp({
     await this.updateStorageInfo();
     this.initFullscreenListeners();
     this.startStorageMonitoring();
-  this.addKeyboardListeners();
-  this.initVisibilitySlideshowHandler();
+    this.addKeyboardListeners();
+    this.initVisibilitySlideshowHandler();
   },
   beforeUnmount() {
     // Clean up the storage monitoring interval
@@ -367,7 +367,7 @@ const app = createApp({
     }
     // Remove visibility handler
     if (this._visibilityHandler) {
-      document.removeEventListener('visibilitychange', this._visibilityHandler);
+      document.removeEventListener("visibilitychange", this._visibilityHandler);
       this._visibilityHandler = null;
     }
     // Stop slideshow if running
@@ -405,7 +405,8 @@ const app = createApp({
     },
 
     toggleSlideshow() {
-      if (this.slideshowPlaying) this.pauseSlideshow(); else this.startSlideshow();
+      if (this.slideshowPlaying) this.pauseSlideshow();
+      else this.startSlideshow();
     },
 
     setSlideshowSpeed(ms) {
@@ -440,7 +441,7 @@ const app = createApp({
           }
         }
       };
-      document.addEventListener('visibilitychange', this._visibilityHandler);
+      document.addEventListener("visibilitychange", this._visibilityHandler);
     },
     async initDB() {
       return new Promise((resolve, reject) => {
@@ -466,20 +467,22 @@ const app = createApp({
       const request = store.getAll();
 
       request.onsuccess = async () => {
-        this.images = request.result.map(image => {
-          if (image.blob) {
-            image.url = URL.createObjectURL(image.blob);
-            if (image.blob.type.startsWith("image/") && !image.thumbnailUrl) {
-              this.createThumbnail(image.blob).then(thumbnailUrl => {
-                image.thumbnailUrl = thumbnailUrl;
-              });
-            } else if (image.thumbnailBlob) {
-              image.thumbnailUrl = URL.createObjectURL(image.thumbnailBlob);
+        this.images = request.result
+          .map((image) => {
+            if (image.blob) {
+              image.url = URL.createObjectURL(image.blob);
+              if (image.blob.type.startsWith("image/") && !image.thumbnailUrl) {
+                this.createThumbnail(image.blob).then((thumbnailUrl) => {
+                  image.thumbnailUrl = thumbnailUrl;
+                });
+              } else if (image.thumbnailBlob) {
+                image.thumbnailUrl = URL.createObjectURL(image.thumbnailBlob);
+              }
             }
-          }
-          return image;
-        }).sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
-        
+            return image;
+          })
+          .sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
+
         // Update storage info whenever images are loaded
         await this.updateStorageInfo();
       };
@@ -504,7 +507,8 @@ const app = createApp({
 
           const blob = await response.blob();
           const urlObj = new URL(url.trim());
-          const fileName = urlObj.pathname.split("/").pop() || ("image_" + Date.now());
+          const fileName =
+            urlObj.pathname.split("/").pop() || "image_" + Date.now();
 
           const image = {
             id: Date.now() + Math.random(),
@@ -536,7 +540,11 @@ const app = createApp({
       this.downloading = false;
 
       if (successful.length > 0) {
-        this.downloadStatus = "Successfully downloaded " + successful.length + " image" + (successful.length > 1 ? "s" : "");
+        this.downloadStatus =
+          "Successfully downloaded " +
+          successful.length +
+          " image" +
+          (successful.length > 1 ? "s" : "");
         this.urlInput = "";
       }
     },
@@ -567,13 +575,23 @@ const app = createApp({
     },
 
     addSelectedFiles(files) {
-      const imageFiles = files.filter(file => {
-        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      const imageFiles = files.filter((file) => {
+        const validTypes = [
+          "image/jpeg",
+          "image/jpg",
+          "image/png",
+          "image/gif",
+          "image/webp",
+        ];
         return validTypes.includes(file.type);
       });
 
       if (imageFiles.length !== files.length) {
-        alert(`${files.length - imageFiles.length} file(s) were skipped. Only image files are supported.`);
+        alert(
+          `${
+            files.length - imageFiles.length
+          } file(s) were skipped. Only image files are supported.`
+        );
       }
 
       this.selectedFiles = [...this.selectedFiles, ...imageFiles];
@@ -629,7 +647,11 @@ const app = createApp({
       this.currentUploadFile = "";
 
       if (successful.length > 0) {
-        this.uploadStatus = "Successfully uploaded " + successful.length + " image" + (successful.length > 1 ? "s" : "");
+        this.uploadStatus =
+          "Successfully uploaded " +
+          successful.length +
+          " image" +
+          (successful.length > 1 ? "s" : "");
         this.selectedFiles = [];
       }
     },
@@ -673,7 +695,8 @@ const app = createApp({
         const store = tx.objectStore("images");
         store.add(image);
         tx.oncomplete = () => resolve();
-        tx.onerror = () => reject(tx.error || new Error("Failed to save image"));
+        tx.onerror = () =>
+          reject(tx.error || new Error("Failed to save image"));
         tx.onabort = () => reject(tx.error || new Error("Transaction aborted"));
       });
     },
@@ -695,7 +718,7 @@ const app = createApp({
         window.history.back();
       } else {
         // Fallback to gallery route if no history
-        this.$router.push('/gallery');
+        this.$router.push("/gallery");
       }
     },
 
@@ -704,47 +727,49 @@ const app = createApp({
       this._keyHandler = (e) => {
         if (!this.selectedImage) return; // Only when viewing a single image
         // Ignore if focused on input/textarea
-        const tag = (document.activeElement && document.activeElement.tagName) || '';
+        const tag =
+          (document.activeElement && document.activeElement.tagName) || "";
         if (/(INPUT|TEXTAREA|SELECT)/.test(tag)) return;
 
-        if (e.key === 'ArrowRight') {
+        if (e.key === "ArrowRight") {
           e.preventDefault();
           this.nextImage();
-        } else if (e.key === 'ArrowLeft') {
+        } else if (e.key === "ArrowLeft") {
           e.preventDefault();
           this.prevImage();
-        } else if (e.key === 'Escape') {
+        } else if (e.key === "Escape") {
           e.preventDefault();
-          if (this.isFullscreen) this.exitFullscreen(); else this.goBack();
-        } else if (e.key.toLowerCase() === 'f') {
+          if (this.isFullscreen) this.exitFullscreen();
+          else this.goBack();
+        } else if (e.key.toLowerCase() === "f") {
           // Quick fullscreen toggle with "F"
           e.preventDefault();
           this.toggleFullscreen();
-        } else if (e.key.toLowerCase() === 'h') {
+        } else if (e.key.toLowerCase() === "h") {
           // Toggle controls with "H"
           e.preventDefault();
           this.toggleControls();
-        } else if (e.code === 'Space') {
+        } else if (e.code === "Space") {
           // Space toggles slideshow
           e.preventDefault();
           this.toggleSlideshow();
-        } else if (e.key === '1') {
+        } else if (e.key === "1") {
           e.preventDefault();
           this.setSlideshowSpeed(2000);
-        } else if (e.key === '2') {
+        } else if (e.key === "2") {
           e.preventDefault();
           this.setSlideshowSpeed(3000);
-        } else if (e.key === '3') {
+        } else if (e.key === "3") {
           e.preventDefault();
           this.setSlideshowSpeed(5000);
         }
       };
-      window.addEventListener('keydown', this._keyHandler);
+      window.addEventListener("keydown", this._keyHandler);
     },
 
     removeKeyboardListeners() {
       if (this._keyHandler) {
-        window.removeEventListener('keydown', this._keyHandler);
+        window.removeEventListener("keydown", this._keyHandler);
         this._keyHandler = null;
       }
     },
@@ -760,7 +785,7 @@ const app = createApp({
       if (!img) return;
       this.selectedImage = img;
       // keep controls state, only update route
-      this.$router.push('/gallery/' + img.id);
+      this.$router.push("/gallery/" + img.id);
     },
 
     nextImage() {
@@ -803,7 +828,8 @@ const app = createApp({
           const angle = Math.abs(Math.atan2(dy, dx) * (180 / Math.PI));
           if (angle < maxAngle || angle > 180 - maxAngle) {
             // Horizontal swipe
-            if (dx < 0) this.nextImage(); else this.prevImage();
+            if (dx < 0) this.nextImage();
+            else this.prevImage();
           }
         }
       }
@@ -839,14 +865,19 @@ const app = createApp({
 
     async deleteSelected() {
       const count = this.selectedImages.length;
-      const confirmMsg = "Delete " + count + " image" + (count > 1 ? "s" : "") + "?";
+      const confirmMsg =
+        "Delete " + count + " image" + (count > 1 ? "s" : "") + "?";
       if (confirm(confirmMsg)) {
         // Revoke object URLs first
         for (const imageId of this.selectedImages) {
           const image = this.images.find((img) => img.id === imageId);
           if (image) {
-            try { URL.revokeObjectURL(image.url); } catch {}
-            try { if (image.thumbnailUrl) URL.revokeObjectURL(image.thumbnailUrl); } catch {}
+            try {
+              URL.revokeObjectURL(image.url);
+            } catch {}
+            try {
+              if (image.thumbnailUrl) URL.revokeObjectURL(image.thumbnailUrl);
+            } catch {}
           }
         }
 
@@ -858,8 +889,10 @@ const app = createApp({
             store.delete(imageId);
           }
           tx.oncomplete = () => resolve();
-          tx.onerror = () => reject(tx.error || new Error("Failed to delete selected images"));
-          tx.onabort = () => reject(tx.error || new Error("Transaction aborted"));
+          tx.onerror = () =>
+            reject(tx.error || new Error("Failed to delete selected images"));
+          tx.onabort = () =>
+            reject(tx.error || new Error("Transaction aborted"));
         });
 
         await this.loadImages();
@@ -891,8 +924,12 @@ const app = createApp({
       if (confirm("Delete this image?")) {
         const image = this.images.find((img) => img.id === imageId);
         if (image) {
-          try { URL.revokeObjectURL(image.url); } catch {}
-          try { if (image.thumbnailUrl) URL.revokeObjectURL(image.thumbnailUrl); } catch {}
+          try {
+            URL.revokeObjectURL(image.url);
+          } catch {}
+          try {
+            if (image.thumbnailUrl) URL.revokeObjectURL(image.thumbnailUrl);
+          } catch {}
         }
 
         await new Promise((resolve, reject) => {
@@ -900,8 +937,10 @@ const app = createApp({
           const store = tx.objectStore("images");
           store.delete(imageId);
           tx.oncomplete = () => resolve();
-          tx.onerror = () => reject(tx.error || new Error("Failed to delete image"));
-          tx.onabort = () => reject(tx.error || new Error("Transaction aborted"));
+          tx.onerror = () =>
+            reject(tx.error || new Error("Failed to delete image"));
+          tx.onabort = () =>
+            reject(tx.error || new Error("Transaction aborted"));
         });
 
         await this.loadImages();
@@ -912,7 +951,7 @@ const app = createApp({
 
     toggleControls() {
       this.controlsVisible = !this.controlsVisible;
-      
+
       // If hiding controls, show a brief hint that clicking will show them again
       if (!this.controlsVisible && !this.isFullscreen) {
         this.showControlsHint();
@@ -921,17 +960,18 @@ const app = createApp({
 
     showControlsHint() {
       // Create a temporary hint that fades away
-      const container = document.querySelector('.single-image-container');
+      const container = document.querySelector(".single-image-container");
       if (!container) return;
 
       // Remove any existing hint
-      const existingHint = container.querySelector('.controls-hint');
+      const existingHint = container.querySelector(".controls-hint");
       if (existingHint) existingHint.remove();
 
       // Create hint element
-      const hint = document.createElement('div');
-      hint.className = 'controls-hint';
-      hint.innerHTML = '<i class="fas fa-mouse-pointer"></i> Click to show controls';
+      const hint = document.createElement("div");
+      hint.className = "controls-hint";
+      hint.innerHTML =
+        '<i class="fas fa-mouse-pointer"></i> Click to show controls';
       hint.style.cssText = `
         position: absolute;
         bottom: 20px;
@@ -952,12 +992,12 @@ const app = createApp({
 
       // Show hint
       setTimeout(() => {
-        hint.style.opacity = '1';
+        hint.style.opacity = "1";
       }, 100);
 
       // Hide hint after 2 seconds
       setTimeout(() => {
-        hint.style.opacity = '0';
+        hint.style.opacity = "0";
         setTimeout(() => {
           if (hint.parentNode) hint.parentNode.removeChild(hint);
         }, 300);
@@ -975,10 +1015,13 @@ const app = createApp({
     async updateStorageInfo() {
       try {
         // Calculate used storage from images
-        this.usedStorage = this.images.reduce((total, image) => total + image.size, 0);
-        
+        this.usedStorage = this.images.reduce(
+          (total, image) => total + image.size,
+          0
+        );
+
         // Estimate total available storage (IndexedDB quota)
-        if ('storage' in navigator && 'estimate' in navigator.storage) {
+        if ("storage" in navigator && "estimate" in navigator.storage) {
           const estimate = await navigator.storage.estimate();
           this.totalStorage = estimate.quota || 0;
         } else {
@@ -986,8 +1029,11 @@ const app = createApp({
           this.totalStorage = 50 * 1024 * 1024 * 1024; // 50GB fallback
         }
       } catch (error) {
-        console.error('Error updating storage info:', error);
-        this.usedStorage = this.images.reduce((total, image) => total + image.size, 0);
+        console.error("Error updating storage info:", error);
+        this.usedStorage = this.images.reduce(
+          (total, image) => total + image.size,
+          0
+        );
         this.totalStorage = 0;
       }
     },
@@ -1004,11 +1050,15 @@ const app = createApp({
       }, 30000);
 
       // Also update when window becomes visible (user switches back to tab)
-      document.addEventListener('visibilitychange', async () => {
+      this._storageVisibilityHandler = async () => {
         if (!document.hidden) {
           await this.updateStorageInfo();
         }
-      });
+      };
+      document.addEventListener(
+        "visibilitychange",
+        this._storageVisibilityHandler
+      );
     },
 
     async selectImageById(imageId) {
@@ -1017,13 +1067,13 @@ const app = createApp({
         if (!this.db) {
           await this.initDB();
         }
-        
+
         if (!this.images || this.images.length === 0) {
           await this.loadImages();
         }
 
         // Find the image
-        const image = this.images.find(img => img.id === imageId);
+        const image = this.images.find((img) => img.id === imageId);
         if (image) {
           this.selectedImage = image;
           this.controlsVisible = false;
@@ -1031,20 +1081,20 @@ const app = createApp({
         } else {
           // If image not found, try reloading images one more time
           await this.loadImages();
-          const retryImage = this.images.find(img => img.id === imageId);
+          const retryImage = this.images.find((img) => img.id === imageId);
           if (retryImage) {
             this.selectedImage = retryImage;
             this.controlsVisible = false;
             return true;
           } else {
             console.warn(`Image with ID ${imageId} not found`);
-            this.$router.push('/gallery');
+            this.$router.push("/gallery");
             return false;
           }
         }
       } catch (error) {
-        console.error('Error selecting image:', error);
-        this.$router.push('/gallery');
+        console.error("Error selecting image:", error);
+        this.$router.push("/gallery");
         return false;
       }
     },
@@ -1054,22 +1104,25 @@ const app = createApp({
     },
 
     initDarkMode() {
-      const savedTheme = localStorage.getItem('gallery-app-theme');
-      this.isDarkMode = savedTheme === 'dark';
+      const savedTheme = localStorage.getItem("gallery-app-theme");
+      this.isDarkMode = savedTheme === "dark";
       this.applyTheme();
     },
 
     toggleDarkMode() {
       this.isDarkMode = !this.isDarkMode;
       this.applyTheme();
-      localStorage.setItem('gallery-app-theme', this.isDarkMode ? 'dark' : 'light');
+      localStorage.setItem(
+        "gallery-app-theme",
+        this.isDarkMode ? "dark" : "light"
+      );
     },
 
     applyTheme() {
       if (this.isDarkMode) {
-        document.body.classList.add('dark-mode');
+        document.body.classList.add("dark-mode");
       } else {
-        document.body.classList.remove('dark-mode');
+        document.body.classList.remove("dark-mode");
       }
     },
 
@@ -1082,15 +1135,16 @@ const app = createApp({
     },
 
     enterFullscreen() {
-      const container = document.querySelector('.single-image-container');
+      const container = document.querySelector(".single-image-container");
       if (container && container.requestFullscreen) {
-        container.requestFullscreen()
+        container
+          .requestFullscreen()
           .then(() => {
             this.isFullscreen = true;
             // Don't automatically show controls - let user toggle them
           })
-          .catch(err => {
-            console.error('Failed to enter fullscreen:', err);
+          .catch((err) => {
+            console.error("Failed to enter fullscreen:", err);
           });
       } else if (container && container.webkitRequestFullscreen) {
         container.webkitRequestFullscreen();
@@ -1105,12 +1159,13 @@ const app = createApp({
 
     exitFullscreen() {
       if (document.exitFullscreen) {
-        document.exitFullscreen()
+        document
+          .exitFullscreen()
           .then(() => {
             this.isFullscreen = false;
           })
-          .catch(err => {
-            console.error('Failed to exit fullscreen:', err);
+          .catch((err) => {
+            console.error("Failed to exit fullscreen:", err);
           });
       } else if (document.webkitExitFullscreen) {
         document.webkitExitFullscreen();
@@ -1131,11 +1186,14 @@ const app = createApp({
         this.isFullscreen = isCurrentlyFullscreen;
       };
 
-      document.addEventListener('fullscreenchange', fullscreenChangeHandler);
-      document.addEventListener('webkitfullscreenchange', fullscreenChangeHandler);
-      document.addEventListener('msfullscreenchange', fullscreenChangeHandler);
-    }
-  }
+      document.addEventListener("fullscreenchange", fullscreenChangeHandler);
+      document.addEventListener(
+        "webkitfullscreenchange",
+        fullscreenChangeHandler
+      );
+      document.addEventListener("msfullscreenchange", fullscreenChangeHandler);
+    },
+  },
 });
 
 app.use(router);
