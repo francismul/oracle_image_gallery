@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v7";
+const CACHE_VERSION = "v10";
 const CACHE_NAME = `oracle-image-gallery-${CACHE_VERSION}`;
 const BASE = "/oracle_image_gallery";
 

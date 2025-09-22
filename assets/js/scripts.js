@@ -36,7 +36,46 @@ const routes = [
               class="url-textarea"
               placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.png&#10;https://example.com/animation.gif"
             ></textarea>
+            <button
+              class="download-btn"
+              @click="$root.downloadImages"
+              :disabled="$root.downloading || !$root.urlInput || !$root.urlInput.trim()"
+              title="Download images from the provided URLs"
+            >
+              <i class="fas fa-download"></i> Download Images
+            </button>
             </div>
+
+          <!-- File Upload Section -->
+          <div v-if="$root.uploadMode === 'file'" class="file-upload-section">
+            <div
+              class="file-drop-zone"
+              :class="{ 'drag-over': $root.isDragging }"
+              @dragover.prevent="$root.handleDragOver"
+              @dragleave.prevent="$root.handleDragLeave"
+              @drop.prevent="$root.handleFileDrop"
+              @click="$root.triggerFileSelect"
+              role="button"
+              tabindex="0"
+              @keydown.enter.prevent="$root.triggerFileSelect"
+              @keydown.space.prevent="$root.triggerFileSelect"
+            >
+              <div class="drop-zone-content">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h3>Upload your images</h3>
+                <p>Drag & drop images here, or click to choose files</p>
+                <p class="file-limit">Supported: JPG, PNG, GIF, WebP</p>
+              </div>
+            </div>
+            <input
+              type="file"
+              ref="fileInput"
+              multiple
+              accept="image/*,.gif"
+              @change="$root.handleFileSelect"
+              style="display: none;"
+            />
+          </div>
 
             <div v-if="$root.selectedFiles.length > 0" class="selected-files">
               <h4>Selected Files ({{ $root.selectedFiles.length }}):</h4>
@@ -104,7 +143,8 @@ const routes = [
     path: "/gallery",
     component: {
       template: `
-        <div class="page">
+        <div class="page gallery-page">
+          <div class="gallery-scroll">
           <div class="gallery-controls">
             <div class="view-controls">
               <button
@@ -186,6 +226,7 @@ const routes = [
               </div>
             </div>
           </div>
+          </div>
         </div>
       `,
     },
@@ -209,6 +250,14 @@ const routes = [
             <div class="image-controls" :class="{ visible: $root.controlsVisible }">
               <button
                 class="control-btn"
+                @click.stop="$root.prevImage"
+                :disabled="!$root.canPrev()"
+                title="Previous"
+              >
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <button
+                class="control-btn"
                 @click.stop="$root.toggleSlideshow"
                 :title="$root.slideshowPlaying ? 'Pause Slideshow' : 'Play Slideshow'"
               >
@@ -229,26 +278,20 @@ const routes = [
                 <i :class="$root.isFullscreen ? 'fas fa-compress' : 'fas fa-expand'"></i>
               </button>
               <button
-                class="control-btn"
-                @click.stop="$root.exportImage($root.selectedImage)"
-                title="Export"
-              >
-                <i class="fas fa-download"></i>
-              </button>
-              <button
-                class="control-btn"
-                @click.stop="$root.deleteImage($root.selectedImage.id)"
-                title="Delete"
-              >
-                <i class="fas fa-trash"></i>
-              </button>
-              <button
                 v-if="!$root.isFullscreen"
                 class="control-btn"
                 @click.stop="$root.goBack"
                 title="Back to Gallery"
               >
                 <i class="fas fa-arrow-left"></i>
+              </button>
+              <button
+                class="control-btn"
+                @click.stop="$root.nextImage"
+                :disabled="!$root.canNext()"
+                title="Next"
+              >
+                <i class="fas fa-chevron-right"></i>
               </button>
             </div>
           </div>
@@ -269,6 +312,30 @@ const routes = [
             <div class="detail-row">
               <strong>Added:</strong>
               <span>{{ $root.formatDate($root.selectedImage.addedAt) }}</span>
+            </div>
+            <div class="detail-row">
+              <strong>Download Image</strong>
+              <span>
+                <button
+                  class="control-btn"
+                  @click.stop="$root.exportImage($root.selectedImage)"
+                  title="Export"
+                >
+                  <i class="fas fa-download"></i>
+                </button>
+              </span>
+            </div>
+            <div class="detail-row">
+              <strong>Delete Image</strong>
+              <span>
+                <button
+                  class="control-btn"
+                  @click.stop="$root.deleteImage($root.selectedImage.id)"
+                  title="Delete"
+                >
+                  <i class="fas fa-trash"></i>
+                </button>
+              </span>
             </div>
           </div>
         </div>
@@ -369,6 +436,11 @@ const app = createApp({
     if (this._visibilityHandler) {
       document.removeEventListener("visibilitychange", this._visibilityHandler);
       this._visibilityHandler = null;
+    }
+    // Remove storage visibility handler
+    if (this._storageVisibilityHandler) {
+      document.removeEventListener("visibilitychange", this._storageVisibilityHandler);
+      this._storageVisibilityHandler = null;
     }
     // Stop slideshow if running
     this.stopSlideshow && this.stopSlideshow();
@@ -800,6 +872,16 @@ const app = createApp({
       if (idx === -1) return;
       const prev = Math.max(idx - 1, 0);
       if (prev !== idx) this.navigateToIndex(prev);
+    },
+
+    canPrev() {
+      const idx = this.getCurrentImageIndex();
+      return idx > 0;
+    },
+
+    canNext() {
+      const idx = this.getCurrentImageIndex();
+      return idx >= 0 && idx < this.images.length - 1;
     },
 
     // Touch swipe for single image view
