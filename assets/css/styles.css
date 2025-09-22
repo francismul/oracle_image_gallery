@@ -264,7 +264,13 @@ body {
 .file-drop-zone:hover,
 .file-drop-zone.drag-over {
   border-color: var(--button-active-bg);
-  background: rgba(102, 126, 234, 0.1);
+  background: rgba(102, 126, 234, 0.12);
+  box-shadow: 0 6px 20px var(--shadow-hover);
+}
+
+.file-drop-zone:focus {
+  outline: 3px solid var(--button-active-bg);
+  outline-offset: 3px;
 }
 
 .drop-zone-content {
@@ -290,6 +296,12 @@ body {
 .file-limit {
   font-size: 12px;
   color: var(--text-secondary);
+}
+
+@media (max-width: 600px) {
+  .file-drop-zone {
+    padding: 28px 16px;
+  }
 }
 
 /* Selected Files */
@@ -441,6 +453,26 @@ body {
   min-height: 500px;
 }
 
+/* Gallery page sticky header + scrollable content */
+.page.gallery-page {
+  display: flex;
+  flex-direction: column;
+  /* allow inner scroll area to size correctly within flex parent */
+  min-height: 0;
+  /* keep a comfortable min height like other pages */
+  min-height: 500px;
+}
+
+.gallery-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  /* take remaining space and enable scrolling for the image list */
+  flex: 1 1 auto;
+  min-height: 0; /* critical so the child can overflow */
+  overflow-y: auto;
+}
+
 /* Add URL Page */
 .url-input-section {
   margin-bottom: 30px;
@@ -534,6 +566,13 @@ body {
   margin-bottom: 20px;
   flex-wrap: wrap;
   gap: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--bg-secondary);
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .view-controls {
